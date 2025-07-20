@@ -57,4 +57,21 @@ public class SeatService {
     public void deleteSeat(Long id) {
     seatRepository.deleteById(id);
     }
+
+    public synchronized Optional<Seat> bookSeatThreadSafe(Long id, String username) {
+    Optional<Seat> seatOptional = seatRepository.findById(id);
+    seatOptional.ifPresent(seat -> {
+        if (!seat.isBooked()) {
+            System.out.println(username + " is booking seat " + seat.getSeatNumber());
+            seat.setBooked(true);
+            seat.setBookedBy(username);
+            seatRepository.save(seat);
+        } else {
+            System.out.println("Seat already booked by " + seat.getBookedBy());
+        }
+    });
+    return seatOptional;
+    }
+
 }
+
