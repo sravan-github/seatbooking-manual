@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Seat Booking System</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        color: #4caf50;
+      }
+      button {
+        margin: 5px;
+        padding: 8px 12px;
+      }
+      input {
+        margin: 5px;
+        padding: 5px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background-color: #f4f4f4;
+      }
+      .booked {
+        background-color: #fdd;
+      }
+      .available {
+        background-color: #dfd;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎟️ Seat Booking System</h1>
+
+    <div>
+      <button onclick="fetchAllSeats()">Show All Seats</button>
+      <button onclick="fetchAvailableSeats()">Show Available Seats</button>
+    </div>
+
+    <div>
+      <h3>Add New Seat</h3>
+      <input type="number" id="seatNumber" placeholder="Seat Number" />
+      <button onclick="addSeat()">Add Seat</button>
+    </div>
+
+    <div>
+      <h3>Book Seat</h3>
+      <input type="number" id="bookSeatId" placeholder="Seat ID" />
+      <input type="text" id="username" placeholder="Username" />
+      <button onclick="bookSeat()">Book</button>
+    </div>
+
+    <div>
+      <h3>Cancel Booking</h3>
+      <input type="number" id="cancelSeatId" placeholder="Seat ID" />
+      <button onclick="cancelBooking()">Cancel</button>
+    </div>
+
+    <div>
+      <h3>Delete Seat</h3>
+      <input type="number" id="deleteSeatId" placeholder="Seat ID" />
+      <button onclick="deleteSeat()">Delete</button>
+    </div>
+
+    <h2>🪑 Seat List</h2>
+    <table id="seatTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Seat Number</th>
+          <th>Status</th>
+          <th>Booked By</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      const API_BASE = "http://localhost:8080/api/seats";
+
+      function fetchAllSeats() {
+        fetch(API_BASE)
+          .then((res) => res.json())
+          .then((data) => renderSeats(data));
+      }
+
+      function fetchAvailableSeats() {
+        fetch(`${API_BASE}/available`)
+          .then((res) => res.json())
+          .then((data) => renderSeats(data));
+      }
+
+      function addSeat() {
+        const seatNumber = document.getElementById("seatNumber").value;
+        fetch(`${API_BASE}/add?seatNumber=${seatNumber}`, {
+          method: "POST",
+        }).then(() => fetchAllSeats());
+      }
+
+      function bookSeat() {
+        const seatId = document.getElementById("bookSeatId").value;
+        const username = document.getElementById("username").value;
+        fetch(`${API_BASE}/book/${seatId}?username=${username}`, {
+          method: "POST",
+        }).then(() => fetchAllSeats());
+      }
+
+      function cancelBooking() {
+        const seatId = document.getElementById("cancelSeatId").value;
+        fetch(`${API_BASE}/cancel/${seatId}`, {
+          method: "POST",
+        }).then(() => fetchAllSeats());
+      }
+
+      function deleteSeat() {
+        const seatId = document.getElementById("deleteSeatId").value;
+        fetch(`${API_BASE}/${seatId}`, {
+          method: "DELETE",
+        }).then(() => fetchAllSeats());
+      }
+
+      function renderSeats(seats) {
+        const tableBody = document.querySelector("#seatTable tbody");
+        tableBody.innerHTML = "";
+        seats.forEach((seat) => {
+          const row = document.createElement("tr");
+          row.className = seat.booked ? "booked" : "available";
+          row.innerHTML = `
+                <td>${seat.id}</td>
+                <td>${seat.seatNumber}</td>
+                <td>${seat.booked ? "Booked" : "Available"}</td>
+                <td>${seat.bookedBy || "-"}</td>
+            `;
+          tableBody.appendChild(row);
+        });
+      }
+
+      // Load all seats on first load
+      fetchAllSeats();
+    </script>
+  </body>
+</html>
